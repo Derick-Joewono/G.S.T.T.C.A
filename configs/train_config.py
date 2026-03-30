@@ -12,7 +12,7 @@ class TrainConfig:
     # EXPERIMENT INFO
     # ==========================
 
-    experiment_name = "swin_earlyfusion_deforestation"
+    experiment_name = "gswin_tac_deforestation"
 
     # ==========================
     # DATASET
@@ -93,7 +93,7 @@ class TrainConfig:
     # model_name
     # ==========================
 
-    model_name= "unet_ef"
+    model_name= "gswin_tac"
 
     #options ->
     # "unet_ef"
