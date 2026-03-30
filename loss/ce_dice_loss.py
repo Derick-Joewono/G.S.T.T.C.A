@@ -2,43 +2,43 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# Mencoba import sub-komponen Focal & Dice
 try:
     from loss.boundary_loss import FocalLoss, DiceLoss
 except ModuleNotFoundError:
-    # Fallback jika dijalankan lokal di folder yang sama
     from boundary_loss import FocalLoss, DiceLoss
 
 class FocalDiceCELoss(nn.Module):
-    def __init__(self, ce_weight=0.5, focal_weight=1.0, dice_weight=1.0):
+    def __init__(self, raw_weights, ce_weight=0.5, focal_weight=1.0, dice_weight=1.0):
         super().__init__()
         
-        # SARAN WEIGHT BARU (70:30 Ratio)
-        # 0: No Change, 1: Deforest, 2: Forest
-        raw_weights = torch.tensor([0.4381, 2.9007, 2.6848])
-        
-        # Gunakan langsung atau smoothing ringan
-        # Untuk GSWIN-TAC, disarankan gunakan langsung agar model lebih sensitif
-        self.register_buffer('weights', raw_weights)
+        # 1. Smoothing Bobot (Square Root)
+        # Digunakan agar gap antar kelas tidak terlalu ekstrim saat training
+        smoothed_weights = torch.sqrt(raw_weights)
+        self.register_buffer('weights', smoothed_weights)
 
-        # Inisialisasi komponen dengan weights baru
+        # 2. Inisialisasi Komponen Loss
         self.ce = nn.CrossEntropyLoss(weight=self.weights, ignore_index=-1)
         self.focal = FocalLoss(weights=self.weights, gamma=2, alpha=0.25)
         self.dice = DiceLoss(weights=self.weights)
 
+        # 3. Koefisien Bobot Loss (Alpha/Beta/Gamma)
         self.ce_weight = ce_weight
         self.focal_weight = focal_weight
         self.dice_weight = dice_weight
 
     def forward(self, pred, target):
+        # Hitung masing-masing komponen
         l_ce = self.ce(pred, target)
         l_focal = self.focal(pred, target)
         l_dice = self.dice(pred, target)
         
+        # Total Hybrid Loss
         total = (self.ce_weight * l_ce + 
                  self.focal_weight * l_focal + 
                  self.dice_weight * l_dice)
         
-        # Return detail untuk logging
+        # Mengembalikan total loss (untuk backward) dan dict detail (untuk logging)
         return total, {
             "ce": l_ce.item(), 
             "focal": l_focal.item(), 
