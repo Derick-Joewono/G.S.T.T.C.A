@@ -75,7 +75,7 @@ class TrainConfig:
     # DEVICE
     # ==========================
 
-    device = "cpu"
+    device = "cuda"
 
     # ==========================
     # METRICS

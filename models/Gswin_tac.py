@@ -178,7 +178,10 @@ class GSWIN_TAC(nn.Module):
         self.encoder = timm.create_model(
             "swin_base_patch4_window7_224",
             pretrained=True,
-            features_only=True
+            features_only=True,
+            features_only=True,
+            img_size=256,       
+            in_chans=10,
         )
 
         self.gcn = GCNEncoder()
