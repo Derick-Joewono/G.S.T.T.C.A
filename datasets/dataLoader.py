@@ -12,7 +12,7 @@ class ChangeDetectionDataset(Dataset):
 
     def __init__(self, root_dir):
 
-        self.cache_dir = os.path.join(root_dir, "cache_npy")
+        self.cache_dir = os.path.join(root_dir, "cache_npy_output")
 
         self.ids = np.load(os.path.join(self.cache_dir, "ids.npy"))
 
@@ -38,7 +38,7 @@ class ChangeDetectionDataset(Dataset):
 # ====================================
 def create_dataloaders(root_dir, batch_size=8):
 
-    cache_dir = os.path.join(root_dir, "cache_npy")
+    cache_dir = os.path.join(root_dir, "cache_npy_output")
 
     ids = np.load(os.path.join(cache_dir, "ids.npy"))
     labels = np.load(os.path.join(cache_dir, "labels.npy"))
