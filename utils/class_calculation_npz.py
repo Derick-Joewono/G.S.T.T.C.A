@@ -68,7 +68,7 @@ def calculate_npz_class_distribution(cache_dir):
             print(f"  - Weight Kelas {cls_id}: {weight:.4f}")
 
 # Jalankan fungsi pada folder cache_npy kamu
-cache_dir = "data/cache_npy" 
+cache_dir = "data/cache_npy_output" 
 
 if os.path.exists(cache_dir):
     calculate_npz_class_distribution(cache_dir)
