@@ -3,17 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class DeforestationTotalLoss(nn.Module):
-    def __init__(self, raw_weights, ce_weight=0.5, focal_weight=1.0, dice_weight=1.0, boundary_weight=0.5):
+    def __init__(self, ce_weight=0.5, focal_weight=1.0, dice_weight=1.0, boundary_weight=0.5):
         super().__init__()
         
-        # 1. SQUARE ROOT SMOOTHING
-        # Meredam [1.0, 17.5, 16.5] -> [1.0, 4.18, 4.06] agar tidak over-bias
-        smoothed_weights = torch.sqrt(raw_weights)
-        self.register_buffer('weights', smoothed_weights)
+        # SARAN WEIGHT BARU (Hasil seleksi 5000 patches)
+        raw_weights = torch.tensor([0.4381, 2.9007, 2.6848])
+        self.register_buffer('weights', raw_weights)
 
-        # 2. KOMPONEN LOSS
-        self.ce = nn.CrossEntropyLoss(ignore_index=-1) # Anchor stabilitas global
-        self.focal = FocalLoss(weights=self.weights, gamma=2, alpha=0.25) # Alpha untuk balancing
+        # KOMPONEN LOSS DENGAN WEIGHTS TERBARU
+        self.ce = nn.CrossEntropyLoss(weight=self.weights, ignore_index=-1)
+        self.focal = FocalLoss(weights=self.weights, gamma=2, alpha=0.25)
         self.dice = DiceLoss(weights=self.weights)
         self.boundary = BoundaryLoss()
 
@@ -33,7 +32,6 @@ class DeforestationTotalLoss(nn.Module):
                  self.dice_weight * l_dice + 
                  self.boundary_weight * l_boundary)
         
-        # Return total DAN detail untuk monitoring di Tensorboard/WandB
         return total, {
             "ce": l_ce.item(),
             "focal": l_focal.item(),
@@ -41,7 +39,7 @@ class DeforestationTotalLoss(nn.Module):
             "boundary": l_boundary.item()
         }
 
-# --- Sub-komponen Pendukung ---
+# --- Sub-komponen (Focal, Dice, Boundary tetap konsisten) ---
 
 class FocalLoss(nn.Module):
     def __init__(self, weights=None, gamma=2, alpha=0.25):
@@ -51,6 +49,7 @@ class FocalLoss(nn.Module):
         self.alpha = alpha
 
     def forward(self, inputs, targets):
+        # Gunakan reduction='none' agar bisa diaplikasikan focal term-nya
         ce_loss = F.cross_entropy(inputs, targets, reduction='none', weight=self.weights, ignore_index=-1)
         pt = torch.exp(-ce_loss)
         return (self.alpha * (1 - pt)**self.gamma * ce_loss).mean()
@@ -80,7 +79,9 @@ class DiceLoss(nn.Module):
         dice_score = (2. * intersection + self.smooth) / (cardinality + self.smooth)
 
         if self.weights is not None:
-            return 1 - (dice_score.mean(dim=0) * self.weights).sum() / self.weights.sum()
+            # Normalisasi weight agar sum=1
+            w = self.weights / self.weights.sum()
+            return 1 - (dice_score.mean(dim=0) * w).sum()
         return 1 - dice_score.mean()
 
 class BoundaryLoss(nn.Module):
