@@ -1,0 +1,5 @@
+**/cache_npy_output/
+**/cache_npy/
+**/*.npz
+**/*.tif
+**/__pycache__/g
