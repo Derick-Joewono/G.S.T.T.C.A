@@ -10,6 +10,7 @@ from torch.utils.data import Dataset, DataLoader, Subset
 # ====================================
 class ChangeDetectionDataset(Dataset):
     def __init__(self, root_dir, augment=False):
+        # Folder cache sesuai struktur terakhirmu
         self.cache_dir = os.path.join(root_dir, "cache_npy_output")
         self.ids = np.load(os.path.join(self.cache_dir, "ids.npy"))
         self.augment = augment
@@ -21,13 +22,13 @@ class ChangeDetectionDataset(Dataset):
         file_id = self.ids[idx]
         npy_path = os.path.join(self.cache_dir, file_id.replace(".tif", ".npz"))
 
-        # Load data (.npz)
+        # Load data (.npz) dengan 'with' agar hemat RAM
         with np.load(npy_path) as data:
             t1 = torch.from_numpy(data["t1"]).float()
             t2 = torch.from_numpy(data["t2"]).float()
             mask = torch.from_numpy(data["mask"]).long()
 
-        # --- LOGIKA AUGMENTASI (HANYA FLIP UNTUK MENJAGA STRUKTUR FITUR) ---
+        # --- LOGIKA 4 VARIASI FLIP (ON-THE-FLY) ---
         if self.augment:
             # 1. Horizontal Flip (50% chance)
             if random.random() > 0.5:
@@ -58,20 +59,21 @@ def create_dataloaders(root_dir, batch_size=8):
     )
 
     # Split 2: Membagi 20% sisa menjadi 10% Val dan 10% Test
+    # Ditambahkan _, _ untuk menangkap labels (menghindari ValueError unpack)
     val_idx, test_idx, _, _ = train_test_split(
         temp_idx, temp_labels, test_size=0.5, stratify=temp_labels, random_state=42
     )
 
-    # Instance Dataset
+    # Instance Dataset: Pisahkan antara Train (Augment) dan Eval (Original)
     train_ds_master = ChangeDetectionDataset(root_dir, augment=True)
     eval_ds_master = ChangeDetectionDataset(root_dir, augment=False)
 
-    # Subset
+    # Gunakan Subset agar index tetap sinkron
     train_dataset = Subset(train_ds_master, train_idx)
     val_dataset   = Subset(eval_ds_master, val_idx)
     test_dataset  = Subset(eval_ds_master, test_idx)
 
-    # Dataloader
+    # Inisialisasi Loader
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader   = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_loader  = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
