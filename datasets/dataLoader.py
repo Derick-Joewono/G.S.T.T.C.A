@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader, Subset
 
 # ====================================
-# DATASET (DENGAN AUGMENTASI ON-THE-FLY)
+# DATASET (HANYA FLIP AUGMENTATION)
 # ====================================
 class ChangeDetectionDataset(Dataset):
     def __init__(self, root_dir, augment=False):
@@ -27,7 +27,7 @@ class ChangeDetectionDataset(Dataset):
             t2 = torch.from_numpy(data["t2"]).float()
             mask = torch.from_numpy(data["mask"]).long()
 
-        # --- LOGIKA AUGMENTASI (HANYA UNTUK TRAIN) ---
+        # --- LOGIKA AUGMENTASI (HANYA FLIP UNTUK MENJAGA STRUKTUR FITUR) ---
         if self.augment:
             # 1. Horizontal Flip (50% chance)
             if random.random() > 0.5:
@@ -40,13 +40,6 @@ class ChangeDetectionDataset(Dataset):
                 t1 = torch.flip(t1, dims=[1])
                 t2 = torch.flip(t2, dims=[1])
                 mask = torch.flip(mask, dims=[0])
-
-            # 3. Random Rotation 90, 180, 270 (75% chance k > 0)
-            k = random.randint(0, 3)
-            if k > 0:
-                t1 = torch.rot90(t1, k, dims=[1, 2])
-                t2 = torch.rot90(t2, k, dims=[1, 2])
-                mask = torch.rot90(mask, k, dims=[0, 1])
 
         return t1, t2, mask, file_id
 
@@ -65,21 +58,20 @@ def create_dataloaders(root_dir, batch_size=8):
     )
 
     # Split 2: Membagi 20% sisa menjadi 10% Val dan 10% Test
-    # Ditambahkan _, _ untuk menangkap labels yang dikembalikan sklearn agar tidak ValueError
     val_idx, test_idx, _, _ = train_test_split(
         temp_idx, temp_labels, test_size=0.5, stratify=temp_labels, random_state=42
     )
 
-    # BUAT DUA INSTANCE: Satu untuk Train (Augmentasi), Satu untuk Eval (Original)
+    # Instance Dataset
     train_ds_master = ChangeDetectionDataset(root_dir, augment=True)
     eval_ds_master = ChangeDetectionDataset(root_dir, augment=False)
 
-    # Gunakan Subset agar index tetap sinkron dengan split sklearn
+    # Subset
     train_dataset = Subset(train_ds_master, train_idx)
     val_dataset   = Subset(eval_ds_master, val_idx)
     test_dataset  = Subset(eval_ds_master, test_idx)
 
-    # Inisialisasi Loader
+    # Dataloader
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader   = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_loader  = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)

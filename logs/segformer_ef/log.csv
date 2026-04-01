@@ -1,0 +1,1 @@
+epoch,train_loss,val_loss,iou,f1,precision,recall,accuracy,kappa,time_elapsed

@@ -93,7 +93,7 @@ class TrainConfig:
     # model_name
     # ==========================
 
-    model_name= "unet_ef"
+    model_name= "stanet"
 
     #options ->
     # "unet_ef"
