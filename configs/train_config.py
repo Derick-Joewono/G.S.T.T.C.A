@@ -34,11 +34,11 @@ class TrainConfig:
     # TRAINING PARAMETER
     # ==========================
 
-    batch_size = 8
+    batch_size = 16
 
     num_epochs = 30
 
-    learning_rate = 1e-4
+    learning_rate = 1e-5
 
     weight_decay = 1e-4
 
@@ -75,7 +75,7 @@ class TrainConfig:
     # DEVICE
     # ==========================
 
-    device = "cpu"
+    device = "cuda"
 
     # ==========================
     # METRICS
@@ -93,7 +93,7 @@ class TrainConfig:
     # model_name
     # ==========================
 
-    model_name= "stanet"
+    model_name= "unet_ef"
 
     #options ->
     # "unet_ef"
