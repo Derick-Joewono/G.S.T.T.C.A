@@ -59,11 +59,14 @@ def create_dataloaders(root_dir, batch_size=8):
     labels = np.load(os.path.join(cache_dir, "labels.npy"))
     indices = np.arange(len(ids))
 
-    # Split: 80% Train, 10% Val, 10% Test
+    # Split 1: 80% Train, 20% Sisa (temp)
     train_idx, temp_idx, _, temp_labels = train_test_split(
         indices, labels, test_size=0.2, stratify=labels, random_state=42
     )
-    val_idx, test_idx = train_test_split(
+
+    # Split 2: Membagi 20% sisa menjadi 10% Val dan 10% Test
+    # Ditambahkan _, _ untuk menangkap labels yang dikembalikan sklearn agar tidak ValueError
+    val_idx, test_idx, _, _ = train_test_split(
         temp_idx, temp_labels, test_size=0.5, stratify=temp_labels, random_state=42
     )
 
