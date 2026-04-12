@@ -11,7 +11,7 @@ from torch.utils.data import Dataset, DataLoader, Subset
 class ChangeDetectionDataset(Dataset):
     def __init__(self, root_dir, augment=False):
         # Folder cache sesuai struktur terakhirmu
-        self.cache_dir = os.path.join(root_dir, "cache_npy_output")
+        self.cache_dir = os.path.join(root_dir, "cache_npy")
         self.ids = np.load(os.path.join(self.cache_dir, "ids.npy"))
         self.augment = augment
 
@@ -48,7 +48,7 @@ class ChangeDetectionDataset(Dataset):
 # FUNGSI PEMBUAT DATALOADER
 # ====================================
 def create_dataloaders(root_dir, batch_size=8):
-    cache_dir = os.path.join(root_dir, "cache_npy_output")
+    cache_dir = os.path.join(root_dir, "cache_npy")
     ids = np.load(os.path.join(cache_dir, "ids.npy"))
     labels = np.load(os.path.join(cache_dir, "labels.npy"))
     indices = np.arange(len(ids))
