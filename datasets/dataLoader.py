@@ -10,8 +10,8 @@ from torch.utils.data import Dataset, DataLoader, Subset
 # ====================================
 class ChangeDetectionDataset(Dataset):
     def __init__(self, root_dir, augment=False):
-        # Folder cache sesuai struktur terakhirmu
-        self.cache_dir = os.path.join(root_dir, "cache_npy")
+        # 1. Pastikan folder sinkron dengan preprocess terbaru
+        self.cache_dir = os.path.join(root_dir, "cache_npy") 
         self.ids = np.load(os.path.join(self.cache_dir, "ids.npy"))
         self.augment = augment
 
@@ -22,21 +22,24 @@ class ChangeDetectionDataset(Dataset):
         file_id = self.ids[idx]
         npy_path = os.path.join(self.cache_dir, file_id.replace(".tif", ".npz"))
 
-        # Load data (.npz) dengan 'with' agar hemat RAM
-        with np.load(npy_path) as data:
-            t1 = torch.from_numpy(data["t1"]).float()
-            t2 = torch.from_numpy(data["t2"]).float()
-            mask = torch.from_numpy(data["mask"]).long()
+        try:
+            with np.load(npy_path) as data:
+                # Ambil data dan pastikan tidak ada NaN yang lolos
+                t1 = torch.from_numpy(np.nan_to_num(data["t1"], nan=-1.0)).float()
+                t2 = torch.from_numpy(np.nan_to_num(data["t2"], nan=-1.0)).float()
+                mask = torch.from_numpy(data["mask"]).long()
+        except Exception as e:
+            # Jika ada file rusak yang lolos ke sini, print namanya agar kamu bisa hapus nanti
+            print(f"❌ Error loading file {file_id}: {e}")
+            # Return tensor nol agar loop tidak berhenti (atau handle sesuai kebutuhan)
+            return torch.zeros((10, 256, 256)), torch.zeros((10, 256, 256)), torch.zeros((256, 256)), file_id
 
-        # --- LOGIKA 4 VARIASI FLIP (ON-THE-FLY) ---
+        # --- AUGMENTASI ---
         if self.augment:
-            # 1. Horizontal Flip (50% chance)
             if random.random() > 0.5:
                 t1 = torch.flip(t1, dims=[2])
                 t2 = torch.flip(t2, dims=[2])
                 mask = torch.flip(mask, dims=[1])
-
-            # 2. Vertical Flip (50% chance)
             if random.random() > 0.5:
                 t1 = torch.flip(t1, dims=[1])
                 t2 = torch.flip(t2, dims=[1])
