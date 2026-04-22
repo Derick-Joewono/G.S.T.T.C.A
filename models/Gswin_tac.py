@@ -149,18 +149,37 @@ class GSWIN_TAC(nn.Module):
         )
 
     def forward(self, x):
-        # Input x: [B, 20, 256, 256] -> pecah jadi Sentinel 1 & 2
         t1 = x[:, :10]
         t2 = x[:, 10:]
 
-        f1 = self.encoder(t1) # list of features
+        # Mendapatkan fitur dari Swin
+        f1 = self.encoder(t1) 
         f2 = self.encoder(t2)
 
-        s1_1, s1_2, s1_3, s1_4 = f1
-        s2_1, s2_2, s2_3, s2_4 = f2
+        # 🔍 PASTIKAN FORMAT: Swin terkadang mengembalikan (B, H, W, C)
+        # Kita paksa semua stage menjadi (B, C, H, W) agar konsisten dengan GCN & Decoder
+        def fix_shape(feats):
+            fixed = []
+            for feat in feats:
+                # Jika formatnya (B, L, C) atau (B, H, W, C)
+                if feat.dim() == 3: # (B, L, C)
+                    B, L, C = feat.shape
+                    H = W = int(L**0.5)
+                    feat = feat.permute(0, 2, 1).view(B, C, H, W)
+                elif feat.dim() == 4 and feat.shape[1] != 128 and feat.shape[1] != 256: 
+                    # Ini deteksi jika C berada di dimensi terakhir (Channels-Last)
+                    # Misal shape (B, 16, 16, 512)
+                    feat = feat.permute(0, 3, 1, 2)
+                fixed.append(feat)
+            return fixed
 
-        # 1. GCN pada fitur s1_3 (dim 512)
-        gcn_feat = self.gcn(s1_3) # output dim 1024
+        s1_1, s1_2, s1_3, s1_4 = fix_shape(f1)
+        s2_1, s2_2, s2_3, s2_4 = fix_shape(f2)
+
+        # 1. GCN sekarang menerima s1_3 yang SUDAH PASTI [B, 512, 16, 16]
+        gcn_feat = self.gcn(s1_3) 
+        
+        # ... sisa kode FAM dan Decoder
 
         # 2. Gabungkan Swin s1_4 dengan GCN feat menggunakan Gated FAM
         fam_feat = self.fam(s1_4, gcn_feat)
