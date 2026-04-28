@@ -3,3 +3,4 @@
 **/*.npz
 **/*.tif
 **/__pycache__/g
+**/*.pth

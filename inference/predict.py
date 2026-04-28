@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import cv2
 import os
-from utils.visualize import visualize_change_detection
+from inference.visualize import visualize_change_detection
 
 from configs import train_config as config
 from registry.model_registry import MODEL_REGISTRY
@@ -61,32 +61,29 @@ def save_prediction(pred, save_path):
     pred = pred.astype(np.uint8)
     cv2.imwrite(save_path, pred)
 
-def run_inference(t1_path, t2_path, save_path, show_vis=True): # Tambahkan flag visualisasi
-
+def run_inference(npz_path, save_path, show_vis=True):
+    
     model, model_type = load_model()
     
-    t1 = load_image(t1_path)
-    t2 = load_image(t2_path)
+    # Muat data langsung dari satu file NPZ
+    data = np.load(npz_path)
+    t1_np = data["t1"]
+    t2_np = data["t2"]
     
-    # 1. Lakukan prediksi
-    prediction = predict(model, model_type, t1, t2)
+    # Konversi ke Tensor untuk prediksi
+    t1_tensor = torch.from_numpy(t1_np).float()
+    t2_tensor = torch.from_numpy(t2_np).float()
     
-    # 2. Simpan hasil mentah (sebagai gambar)
+    prediction = predict(model, model_type, t1_tensor, t2_tensor)
     save_prediction(prediction, save_path)
     
-    # 3. Opsional: Tampilkan Visualisasi Side-by-Side
     if show_vis:
-        # Kita perlu memindahkan tensor ke numpy dan menyesuaikan dimensi jika perlu
-        # Visualize butuh (C, H, W) untuk T1/T2 dan (H, W) untuk prediction
         visualize_change_detection(
-            t1=t1.numpy(), 
-            t2=t2.numpy(), 
+            t1=t1_np, 
+            t2=t2_np, 
             prediction=prediction,
-            ground_truth=None, # Saat inference biasanya kita tidak punya GT
-            save_path=save_path.replace(".png", "_vis.png") # Simpan plotnya juga
+            ground_truth=data["mask"],
+            save_path=save_path.replace(".png", "_vis.png") 
         )
-
-    print(f"Inference completed. Result saved to {save_path}")
-
 
 

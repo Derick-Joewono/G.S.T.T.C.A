@@ -93,7 +93,7 @@ class TrainConfig:
     # model_name
     # ==========================
 
-    model_name= "gswin_tac"
+    model_name= "unet_ef"
 
     #options ->
     # "unet_ef"
@@ -102,4 +102,8 @@ class TrainConfig:
     # "segformer_ef"
     # "stanet"
     # "bit"
+
     # "gswin_tac"
+    # "segformer_ef"
+    # "swin_ef"
+    #"unet_ef"

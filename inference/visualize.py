@@ -1,13 +1,3 @@
-"""
-Visualization Utilities
-
-Digunakan untuk menampilkan hasil change detection seperti:
-- T1 image
-- T2 image
-- Prediction map
-- Ground truth mask
-"""
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -31,23 +21,11 @@ def normalize_image(img):
 # =========================================================
 # SELECT RGB CHANNELS
 # =========================================================
-
-def to_rgb(img, rgb_indices=(3, 2, 1)):
-    """
-    Mengubah multi-channel image menjadi RGB.
-
-    Default Sentinel-2:
-    B4 B3 B2 → (3,2,1)
-    """
-
-    rgb = img[rgb_indices]
-
+def to_rgb(img, rgb_indices=(2, 1, 0)):
+    rgb = img[list(rgb_indices), :, :] 
     rgb = np.transpose(rgb, (1, 2, 0))
-
     rgb = normalize_image(rgb)
-
     return rgb
-
 
 # =========================================================
 # VISUALIZE CHANGE DETECTION RESULT
@@ -60,26 +38,7 @@ def visualize_change_detection(
     ground_truth=None,
     save_path=None
 ):
-    """
-    Menampilkan hasil change detection.
 
-    Parameters
-    ----------
-    t1 : numpy array
-        Image T1 (C,H,W)
-
-    t2 : numpy array
-        Image T2 (C,H,W)
-
-    prediction : numpy array
-        Prediction map (H,W)
-
-    ground_truth : numpy array
-        Ground truth mask (H,W)
-
-    save_path : str
-        Path untuk menyimpan hasil visualisasi
-    """
 
     t1_rgb = to_rgb(t1)
     t2_rgb = to_rgb(t2)
