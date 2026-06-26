@@ -1,4 +1,4 @@
-from models import segFormer,STANet,swin_earlyfusion,BIT,Gswin_tac,UNet,DeepLabV3EarlyFusion
+from models import segFormer,STANet,swin_earlyfusion,BIT,Gswin_tac,UNet,DeepLabV3EarlyFusion,CF_GCN
 
 #init params
 MODEL_REGISTRY = {
@@ -42,5 +42,16 @@ MODEL_REGISTRY = {
         "model": lambda: Gswin_tac.GSWIN_TAC(num_classes=3),
         "type": "early",
         "optimizer": "AdamW"
+    }
+    ,
+    "cf_gcn": {
+        "model": lambda: CF_GCN.BASE_GCN(
+            input_nc=10,         # 10 channel satelit
+            output_nc=3,         # 3 kelas prediksi
+            resnet_stages_num=4, 
+            backbone='resnet50'
+        ),
+        "type": "siamese",       # Harus siamese karena menerima t1 dan t2 terpisah
+        "optimizer": "Adam"      # CF-GCN paper menggunakan SGD, tapi Adam lebih stabil untuk fine-tuning
     }
 }

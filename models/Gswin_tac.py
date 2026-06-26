@@ -167,8 +167,6 @@ class GSWIN_TAC(nn.Module):
                     H = W = int(L**0.5)
                     feat = feat.permute(0, 2, 1).view(B, C, H, W)
                 elif feat.dim() == 4 and feat.shape[1] != 128 and feat.shape[1] != 256: 
-                    # Ini deteksi jika C berada di dimensi terakhir (Channels-Last)
-                    # Misal shape (B, 16, 16, 512)
                     feat = feat.permute(0, 3, 1, 2)
                 fixed.append(feat)
             return fixed
@@ -178,8 +176,6 @@ class GSWIN_TAC(nn.Module):
 
         # 1. GCN sekarang menerima s1_3 yang SUDAH PASTI [B, 512, 16, 16]
         gcn_feat = self.gcn(s1_3) 
-        
-        # ... sisa kode FAM dan Decoder
 
         # 2. Gabungkan Swin s1_4 dengan GCN feat menggunakan Gated FAM
         fam_feat = self.fam(s1_4, gcn_feat)

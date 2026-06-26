@@ -12,7 +12,7 @@ class TrainConfig:
     # EXPERIMENT INFO
     # ==========================
 
-    experiment_name = "unet_ef_deforestation"
+    experiment_name = "cf_gcn_ef_deforestation"
 
     # ==========================
     # DATASET
@@ -93,7 +93,7 @@ class TrainConfig:
     # model_name
     # ==========================
 
-    model_name= "unet_ef"
+    model_name= "cf_gcn" #<-- ubah namanya
 
     #options ->
     # "unet_ef"
@@ -102,6 +102,7 @@ class TrainConfig:
     # "segformer_ef"
     # "stanet"
     # "bit"
+    #cf_gcn
 
     # "gswin_tac"
     # "segformer_ef"

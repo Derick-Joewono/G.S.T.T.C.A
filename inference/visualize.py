@@ -31,51 +31,48 @@ def to_rgb(img, rgb_indices=(2, 1, 0)):
 # VISUALIZE CHANGE DETECTION RESULT
 # =========================================================
 
-def visualize_change_detection(
-    t1,
-    t2,
-    prediction,
-    ground_truth=None,
-    save_path=None
-):
+from matplotlib.colors import ListedColormap
 
-
+def visualize_change_detection(t1, t2, prediction, ground_truth=None, save_path=None):
     t1_rgb = to_rgb(t1)
     t2_rgb = to_rgb(t2)
 
-    n_cols = 4 if ground_truth is not None else 3
+    # --- DEFINISI WARNA CUSTOM ---
+    # Index 0: Hijau (Lime/Green)
+    # Index 1: Merah (Red)
+    # Index 2: Hijau Tua (DarkGreen)
+    my_colors = ['#32CD32', '#FF0000', '#006400'] 
+    custom_cmap = ListedColormap(my_colors)
+    # -----------------------------
 
+    n_cols = 4 if ground_truth is not None else 3
     plt.figure(figsize=(5 * n_cols, 5))
 
-    # T1
+    # T1 & T2 tetap sama...
     plt.subplot(1, n_cols, 1)
     plt.imshow(t1_rgb)
     plt.title("T1 Image")
     plt.axis("off")
 
-    # T2
     plt.subplot(1, n_cols, 2)
     plt.imshow(t2_rgb)
     plt.title("T2 Image")
     plt.axis("off")
 
-    # Prediction
+    # Prediction dengan warna custom
     plt.subplot(1, n_cols, 3)
-    plt.imshow(prediction, cmap="jet")
+    plt.imshow(prediction, cmap=custom_cmap, vmin=0, vmax=2)
     plt.title("Prediction Map")
     plt.axis("off")
 
-    # Ground Truth
+    # Ground Truth dengan warna custom
     if ground_truth is not None:
-
         plt.subplot(1, n_cols, 4)
-        plt.imshow(ground_truth, cmap="jet")
+        plt.imshow(ground_truth, cmap=custom_cmap, vmin=0, vmax=2)
         plt.title("Ground Truth")
         plt.axis("off")
 
     plt.tight_layout()
-
-    if save_path is not None:
+    if save_path:
         plt.savefig(save_path)
-
     plt.show()
