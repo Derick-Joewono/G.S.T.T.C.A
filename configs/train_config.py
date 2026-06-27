@@ -93,7 +93,7 @@ class TrainConfig:
     # model_name
     # ==========================
 
-    model_name= "hcgnet" #<-- ubah namanya
+    model_name= "cf_gcn" #<-- ubah namanya
 
     #options ->
     # "unet_ef"
