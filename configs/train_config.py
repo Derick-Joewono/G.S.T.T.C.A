@@ -93,7 +93,7 @@ class TrainConfig:
     # model_name
     # ==========================
 
-    model_name= "cf_gcn" #<-- ubah namanya
+    model_name= "hcgnet" #<-- ubah namanya
 
     #options ->
     # "unet_ef"
@@ -102,7 +102,8 @@ class TrainConfig:
     # "segformer_ef"
     # "stanet"
     # "bit"
-    #cf_gcn
+    # cf_gcn
+    # hcgnet
 
     # "gswin_tac"
     # "segformer_ef"

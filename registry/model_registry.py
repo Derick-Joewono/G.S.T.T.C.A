@@ -1,4 +1,4 @@
-from models import segFormer,STANet,swin_earlyfusion,BIT,Gswin_tac,UNet,DeepLabV3EarlyFusion,CF_GCN
+from models import segFormer,STANet,swin_earlyfusion,BIT,Gswin_tac,UNet,DeepLabV3EarlyFusion,CF_GCN,HCGNET
 
 #init params
 MODEL_REGISTRY = {
@@ -52,6 +52,14 @@ MODEL_REGISTRY = {
             backbone='resnet50'
         ),
         "type": "siamese",       # Harus siamese karena menerima t1 dan t2 terpisah
-        "optimizer": "Adam"      # CF-GCN paper menggunakan SGD, tapi Adam lebih stabil untuk fine-tuning
+        "optimizer": "Adam"      
+    },
+    "hcgnet": {
+        "model": lambda: HCGNET.HCGNet(
+            in_channels=10,      # 10 channel satelit (diproses per T1/T2 di forward)
+            num_classes=3        # 3 kelas prediksi (No Change, Deforest, Forest)
+        ),
+        "type": "siamese",       # Menggunakan dual-branch encoder
+        "optimizer": "AdamW"     # AdamW biasanya lebih optimal untuk arsitektur berbasis Graph/Transformer, namun bisa diganti "Adam" jika diinginkan
     }
 }

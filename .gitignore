@@ -4,3 +4,4 @@
 **/*.tif
 **/__pycache__/g
 **/*.pth
+**/datas/
